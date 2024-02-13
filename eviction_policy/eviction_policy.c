@@ -225,3 +225,28 @@ void traverse_dir(struct super_block *sb, struct ouichefs_dir_block *dir,
 	}
 }
 EXPORT_SYMBOL(traverse_dir);
+
+int ouichefs_remove_file(struct inode *parent, struct inode *child)
+{
+	int ret = 0;
+	struct dentry *dentry = d_find_alias(child);
+
+	if (dentry) {
+		pr_info("dentry location: %p\n", dentry);
+
+		ret = ouichefs_unlink(parent, dentry);
+
+		pr_info("Removed file - removing dentry\n");
+		d_drop(dentry);
+
+		dput(dentry);
+
+	} else {
+		pr_err("dentry not found - removing using inode\n");
+
+		ret = ouichefs_remove(parent, child);
+	}
+
+	return ret;
+}
+EXPORT_SYMBOL(ouichefs_remove_file);

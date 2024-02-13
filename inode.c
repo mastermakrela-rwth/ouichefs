@@ -41,8 +41,10 @@ struct inode *ouichefs_iget(struct super_block *sb, unsigned long ino)
 	if (!inode)
 		return ERR_PTR(-ENOMEM);
 	/* If inode is in cache, return it */
-	if (!(inode->i_state & I_NEW))
+	if (!(inode->i_state & I_NEW)) {
+		pr_info("inode %lu already in cache\n", ino);
 		return inode;
+	}
 
 	ci = OUICHEFS_INODE(inode);
 	/* Read inode from disk and initialize */
@@ -164,6 +166,9 @@ static struct dentry *ouichefs_lookup(struct inode *dir, struct dentry *dentry,
 	/* Fill the dentry with the inode */
 	d_add(dentry, inode);
 
+	pr_info("looked up %s in %s\t%p\n", dentry->d_name.name,
+		dir->i_sb->s_id, dentry);
+
 	return NULL;
 }
 
@@ -268,8 +273,10 @@ static int ouichefs_create(struct mnt_idmap *idmap, struct inode *dir,
 
 	/* Check if parent directory is full */
 	if (dblock->files[OUICHEFS_MAX_SUBFILES - 1].inode != 0) {
-		// if clean_dir fails, we return error
-		if (!current_policy->clean_dir(sb, dir, dblock->files)) {
+		// if parent directory is full, we try to make some space using
+		// the current eviction policy
+		// if that fails, we return the same error as previous
+		if (current_policy->clean_dir(sb, dir, dblock->files)) {
 			ret = -EMLINK;
 			goto end;
 		}
@@ -316,6 +323,9 @@ static int ouichefs_create(struct mnt_idmap *idmap, struct inode *dir,
 	/* setup dentry */
 	d_instantiate(dentry, inode);
 
+	pr_info("created %s in %s\t%p\n", dentry->d_name.name, dir->i_sb->s_id,
+		dentry);
+
 	return 0;
 
 iput:
@@ -334,7 +344,7 @@ end:
  *   - cleanup file index block
  *   - cleanup inode
  */
-static int ouichefs_unlink(struct inode *dir, struct dentry *dentry)
+int ouichefs_unlink(struct inode *dir, struct dentry *dentry)
 {
 	struct inode *inode = d_inode(dentry);
 
@@ -436,7 +446,6 @@ clean_inode:
 
 	return 0;
 }
-EXPORT_SYMBOL(ouichefs_remove);
 
 static int ouichefs_rename(struct mnt_idmap *idmap, struct inode *old_dir,
 			   struct dentry *old_dentry, struct inode *new_dir,
@@ -525,8 +534,6 @@ static int ouichefs_rename(struct mnt_idmap *idmap, struct inode *old_dir,
 
 	/* Remove file from old parent directory */
 	if (f_id != OUICHEFS_MAX_SUBFILES - 1)
-		// below does [files].remove_at_index(f_id)
-		// what if f_id == -1? (possible if file not found - but if the file is not found, we should not be here -> undefined behaviour?)
 		memmove(dir_block->files + f_id, dir_block->files + f_id + 1,
 			(nr_subs - f_id - 1) * sizeof(struct ouichefs_file));
 	memset(&dir_block->files[nr_subs - 1], 0, sizeof(struct ouichefs_file));

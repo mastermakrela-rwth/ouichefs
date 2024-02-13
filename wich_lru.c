@@ -116,7 +116,8 @@ static int clean_partition(struct super_block *sb)
 	pr_info("Removing file: %s in directory: %s\n", d.child->i_sb->s_id,
 		d.parent->i_sb->s_id);
 
-	ouichefs_remove(d.parent, d.child);
+	// TODO: use ouichefs_remove_file
+	// ouichefs_remove(d.parent, d.child);
 
 	return 0;
 }
@@ -178,7 +179,8 @@ cont:
 	pr_info("Removing file: %s in directory: %s\n", child_f->filename,
 		parent->i_sb->s_id);
 
-	ouichefs_remove(parent, child);
+	// TODO: use ouichefs_remove_file
+	// ouichefs_remove(parent, child);
 
 	return 0;
 }

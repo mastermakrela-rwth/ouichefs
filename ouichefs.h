@@ -96,6 +96,7 @@ void ouichefs_destroy_inode_cache(void);
 struct inode *ouichefs_iget(struct super_block *sb, unsigned long ino);
 struct ouichefs_inode *get_root_inode(struct super_block *sb);
 int ouichefs_remove(struct inode *dir, struct inode *inode);
+int ouichefs_unlink(struct inode *dir, struct dentry *dentry);
 
 /* file functions */
 extern const struct file_operations ouichefs_file_ops;

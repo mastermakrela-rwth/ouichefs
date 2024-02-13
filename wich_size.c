@@ -46,7 +46,7 @@ static void leaf_action(struct traverse_node *parent,
 			child->file->filename, parent->file->filename);
 	}
 
-	// TODO: possible optimization: if the file id 4KiB (max possible) break the search
+	// TODO: possible optimization: if the file is 4 KiB (max possible) break the search
 }
 
 /**
@@ -81,6 +81,8 @@ static int clean_partition(struct super_block *sb)
 		return -EIO;
 	dir_block = (struct ouichefs_dir_block *)bh->b_data;
 
+	// Prepare for search in file tree
+
 	struct ouichefs_file root_file = {
 		.filename = "/",
 		.inode = 0,
@@ -95,8 +97,12 @@ static int clean_partition(struct super_block *sb)
 
 	struct size_data to_del = { .child = NULL, .parent = root_inode };
 
+	// Search for the biggest file in the file tree
+
 	traverse_dir(sb, dir_block, &root_node, NULL, NULL, leaf_action,
 		     &to_del);
+
+	// Check if anything has been found
 
 	if (to_del.child == NULL) {
 		pr_info("No file to delete\n");
@@ -111,7 +117,9 @@ static int clean_partition(struct super_block *sb)
 	pr_info("Removing file: %lu in directory: %lu\n", to_del.child->i_ino,
 		to_del.parent->i_ino);
 
-	ouichefs_remove(to_del.parent, to_del.child);
+	if (ouichefs_remove_file(to_del.parent, to_del.child)) {
+		pr_err("Failed to remove file\n");
+	}
 
 cleanup:
 	iput(root_inode);
@@ -178,7 +186,12 @@ cont:
 	pr_info("Removing file: %s in directory: %s\n", child_f->filename,
 		parent->i_sb->s_id);
 
-	return ouichefs_remove(parent, child);
+	if (ouichefs_remove_file(parent, child)) {
+		pr_err("Failed to remove file\n");
+		return -1;
+	}
+
+	return 0;
 }
 
 static struct ouichefs_eviction_policy wich_size_policy = {
