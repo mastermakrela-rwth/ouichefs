@@ -33,7 +33,7 @@ struct ouichefs_eviction_policy *current_policy = &default_policy;
 
 /**
  * register_eviction_policy - Register an eviction policy
- * 
+ *
  * @policy: Pointer to the eviction policy structure.
  *
  * This function registers an eviction policy by adding it to the list of
@@ -71,7 +71,7 @@ EXPORT_SYMBOL(register_eviction_policy);
 
 /**
  * unregister_eviction_policy - Unregisters an eviction policy
- * 
+ *
  * @policy: Pointer to the eviction policy to unregister.
  *
  * This function unregisters an eviction policy from the system. If the @policy
@@ -107,7 +107,7 @@ EXPORT_SYMBOL(unregister_eviction_policy);
 
 /**
  * set_eviction_policy - Sets the eviction policy to the specified name.
- * 
+ *
  * @name: The name of the eviction policy to set.
  *
  * This function sets the eviction policy to the specified name. It searches for
@@ -140,14 +140,15 @@ int set_eviction_policy(const char *name)
 }
 
 /**
- * traverse_dir - Recursively traverses a directory and performs actions on each node and leaf.
+ * traverse_dir - Recursively traverses a directory and performs actions on each directory node and
+ * file leaf.
  *
  * @sb: The super block of the file system.
- * @dir: The directory block to traverse.
+ * @dir: The ouichefs block to traverse.
  * @dir_node: The traverse node representing the current directory.
- * @node_action_before: The function to be called before traversing a directory node.
- * @node_action_after: The function to be called after traversing a directory node.
- * @leaf_action: The function to be called for each leaf node.
+ * @node_action_before: The function to be called before traversing a subdirectory node.
+ * @node_action_after: The function to be called after traversing a subdirectory node.
+ * @leaf_action: The function to be called for each leaf.
  * @data: Additional data to be passed to the action functions.
  *
  * This function recursively traverses a directory and performs actions on each node and leaf.
@@ -156,7 +157,6 @@ int set_eviction_policy(const char *name)
  * The node_action_before function is called before traversing a directory node.
  * The node_action_after function is called after traversing a directory node.
  * The leaf_action function is called for each leaf node (file).
- * The data parameter can be used to pass additional data to the action functions to interpret there.
  */
 void traverse_dir(struct super_block *sb, struct ouichefs_dir_block *dir,
 		  struct traverse_node *dir_node,

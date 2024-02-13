@@ -11,17 +11,13 @@ struct print_data {
 };
 
 /**
- * node_action_before - Perform an action before traversing a node
+ * node_action_before - Perform an action before traversing a node.
  * 
  * @parent: The parent traverse node.
  * @data: The data associated with the traversal.
  *
- * This function is called before traversing a node in a tree structure. It performs
- * an action specific to the node and updates the print_data structure accordingly.
- *
- * @pd->indent is incremented by 4 to increase the indentation level for printing.
- *
- * Return: None
+ * This function is called before traversing a node in a tree structure.
+ * It performs an action by incrementing the indentation level by 4.
  */
 static void node_action_before(struct traverse_node *parent, void *data)
 {
@@ -33,15 +29,13 @@ static void node_action_before(struct traverse_node *parent, void *data)
 }
 
 /**
- * node_action_after - Perform an action after traversing a node
+ * node_action_after - Perform an action after traversing a node.
  * 
  * @parent: The parent traverse node.
  * @data: The data associated with the traversal.
  *
- * This function is called after traversing a node in a tree structure. It performs
- * an action by decrementing the indentation level in the print_data structure.
- *
- * Return: None
+ * This function is called after traversing a node in a tree structure.
+ * It performs an action by decrementing the indentation level by 4.
  */
 static void node_action_after(struct traverse_node *parent, void *data)
 {
@@ -57,7 +51,7 @@ static void node_action_after(struct traverse_node *parent, void *data)
  * @data: The data associated with the traversal.
  *
  * This function is called during a traversal when a leaf node is encountered.
- * It performs an action on the leaf node, such as printing its filename.
+ * It prints its filename with respect to the current indentation level.
  *
  * @pd: A pointer to a struct print_data that contains the indentation level
  *      and other information needed for printing.
@@ -76,10 +70,10 @@ static void leaf_action(struct traverse_node *parent,
  * clean_partition - Print the directory structure
  * @sb: The super_block structure pointer.
  *
- * This function prints the directory structure starting from the root inode. 
- * It reads the directory index block from disk and performs various actions on 
+ * This function prints the directory structure starting from the root inode.
+ * It reads the directory index block from disk and performs various actions on
  * the nodes and leaves of the directory tree.
- * 
+ *
  * The traversal is performed using the traverse_dir function and the actions
  * are defined by the node_action_before, node_action_after, and leaf_action
  * functions. The traversal data and print data are stored in the traverse_node
@@ -123,8 +117,8 @@ static int clean_partition(struct super_block *sb)
  * @parent: The parent inode of the directory.
  * @files: Array of ouichefs_file structures representing the files in the directory.
  *
- * This function prints the contents of the directory by iterating over the array of ouichefs_file structures
- * and printing the filenames. 
+ * This function prints the contents of the directory by iterating over the
+ * array of ouichefs_file structures and printing the filenames.
  *
  * Return: Always returns 0.
  */

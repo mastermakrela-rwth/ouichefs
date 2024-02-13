@@ -13,13 +13,14 @@ struct size_data {
 
 /**
  * leaf_action - Perform an action on a leaf node during traversal
- * 
+ *
  * @parent: The parent node of the leaf node.
  * @child: The leaf node to perform the action on.
  * @data: The data associated with the traversal.
  *
  * This function is called during traversal of a file system tree on a leaf node.
- * It performs an action on the leaf node, such as updating the biggest file information.
+ * It compares the size of the child inode with the size of the current biggest file and updates the
+ * biggest file if necessary.
  */
 static void leaf_action(struct traverse_node *parent,
 			struct traverse_node *child, void *data)
@@ -51,12 +52,12 @@ static void leaf_action(struct traverse_node *parent,
 
 /**
  * clean_partition - Cleans the partition by removing a file from a directory.
- * 
+ *
  * @sb: The super_block structure pointer.
  *
- * This function is responsible for cleaning the partition by removing a file 
- * from a directory. It reads the directory index block on disk, traverses the 
- * directory structure, and removes the specified file.
+ * This function is responsible for cleaning the partition by removing a file
+ * from a directory. It reads the directory index block on disk, traverses the
+ * directory structure to find the biggest file and removes it.
  *
  * Return: 0 on success, -EIO on failure.
  */
@@ -130,7 +131,7 @@ cleanup:
 
 /**
  * clean_dir - Clean a directory by removing the biggest file
- * 
+ *
  * @sb: The super block of the file system.
  * @parent: The parent inode of the directory.
  * @files: Array of ouichefs_file structures representing the files in the directory.
