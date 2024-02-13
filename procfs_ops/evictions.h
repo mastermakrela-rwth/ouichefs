@@ -6,7 +6,7 @@
 
 /**
  * evictions_show - Display the available eviction policies
- * 
+ *
  * @m: Pointer to the seq_file structure.
  * @v: Unused parameter.
  *
@@ -45,17 +45,17 @@ static int evictions_open(struct inode *inode, struct file *file)
 
 /**
  * evictions_proc_write - Write callback function for the evictions_proc file
- * 
+ *
  * @s: Pointer to the file structure.
  * @buf: Pointer to the user buffer containing the data to be written.
  * @size: Size of the data to be written.
  * @ppos: Pointer to the file position.
  *
  * This function is the write callback for the evictions_proc file. It expects a
- * policy name as input and sets the eviction policy accordingly. The maximum
- * allowed size for the policy name is defined by POLICY_NAME_LEN. If the input
- * policy name exceeds this limit, an error is returned. The function copies the
- * policy name from the user buffer to the input_buffer and then calls the
+ * policy name of the currently active policies (see :c:func:`evictions_show`) as input and sets the
+ * eviction policy accordingly. The maximum allowed size for the policy name is defined by 
+ * POLICY_NAME_LEN. If the input policy name exceeds this limit, an error is returned. The function
+ * copies the policy name from the user buffer to the input_buffer and then calls the
  * set_eviction_policy() function to set the eviction policy. If the policy name
  * is successfully set, the function returns the size of the data written.
  *
