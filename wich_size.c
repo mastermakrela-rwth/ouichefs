@@ -24,23 +24,29 @@ struct size_data {
 static void leaf_action(struct traverse_node *parent,
 			struct traverse_node *child, void *data)
 {
-	struct size_data *d = (struct size_data *)data;
+	struct size_data *to_del = (struct size_data *)data;
 
-	if (d->child == NULL) {
-		d->parent = parent->inode;
-		d->child = child->inode;
+	pr_info("Leaf: %s\tsize: %lld\n", child->file->filename,
+		child->inode->i_size);
+
+	if (to_del->child == NULL) {
+		to_del->parent = parent->inode;
+		to_del->child = child->inode;
+
 		pr_info("New biggest file is: %s in directory: %s\n",
-			child->file->filename, parent->inode->i_sb->s_id);
+			child->file->filename, parent->file->filename);
 		return;
 	}
 
-	if (child->inode->i_size < d->child->i_size) {
-		d->parent = parent->inode;
-		d->child = child->inode;
+	if (to_del->child->i_size < child->inode->i_size) {
+		to_del->parent = parent->inode;
+		to_del->child = child->inode;
 
 		pr_info("New biggest file is: %s in directory: %s\n",
-			child->file->filename, parent->inode->i_sb->s_id);
+			child->file->filename, parent->file->filename);
 	}
+
+	// TODO: possible optimization: if the file id 4KiB (max possible) break the search
 }
 
 /**
@@ -57,31 +63,59 @@ static void leaf_action(struct traverse_node *parent,
 static int clean_partition(struct super_block *sb)
 {
 	struct buffer_head *bh = NULL;
-	struct ouichefs_dir_block *dblock = NULL;
+	struct ouichefs_dir_block *dir_block = NULL;
 
-	struct ouichefs_inode *root_inode = get_root_inode(sb);
+	struct ouichefs_inode *root_wich_inode = get_root_inode(sb);
 
-	if (!root_inode->index_block)
+	if (!root_wich_inode) {
+		pr_info("No root inode\n");
+		return -EIO;
+	}
+
+	if (!root_wich_inode->index_block)
 		return -EIO;
 
 	/* Read the directory index block on disk */
-	bh = sb_bread(sb, root_inode->index_block);
+	bh = sb_bread(sb, root_wich_inode->index_block);
 	if (!bh)
 		return -EIO;
-	dblock = (struct ouichefs_dir_block *)bh->b_data;
+	dir_block = (struct ouichefs_dir_block *)bh->b_data;
 
-	struct size_data d = { .child = NULL, .parent = NULL };
+	struct ouichefs_file root_file = {
+		.filename = "/",
+		.inode = 0,
+	};
 
-	struct traverse_node root_node = { .file = NULL, .inode = NULL };
+	struct inode *root_inode = ouichefs_iget(sb, 0);
 
-	traverse_dir(sb, dblock, &root_node, NULL, NULL, leaf_action, &d);
+	struct traverse_node root_node = {
+		.file = &root_file,
+		.inode = root_inode,
+	};
 
+	struct size_data to_del = { .child = NULL, .parent = root_inode };
+
+	traverse_dir(sb, dir_block, &root_node, NULL, NULL, leaf_action,
+		     &to_del);
+
+	if (to_del.child == NULL) {
+		pr_info("No file to delete\n");
+		goto cleanup;
+	}
+
+	if (to_del.child == root_inode) {
+		pr_info("Can't delete root directory\n");
+		goto cleanup;
+	}
+
+	pr_info("Removing file: %lu in directory: %lu\n", to_del.child->i_ino,
+		to_del.parent->i_ino);
+
+	ouichefs_remove(to_del.parent, to_del.child);
+
+cleanup:
+	iput(root_inode);
 	brelse(bh);
-
-	pr_info("Removing file: %s in directory: %s\n", d.child->i_sb->s_id,
-		d.parent->i_sb->s_id);
-
-	ouichefs_remove(d.parent, d.child);
 
 	return 0;
 }
@@ -126,7 +160,7 @@ static int clean_dir(struct super_block *sb, struct inode *parent,
 			goto cont;
 		}
 
-		if (inode->i_size < child->i_size) {
+		if (child->i_size < inode->i_size) {
 			child = inode;
 			child_f = f;
 		}
@@ -144,9 +178,7 @@ cont:
 	pr_info("Removing file: %s in directory: %s\n", child_f->filename,
 		parent->i_sb->s_id);
 
-	ouichefs_remove(parent, child);
-
-	return 0;
+	return ouichefs_remove(parent, child);
 }
 
 static struct ouichefs_eviction_policy wich_size_policy = {
