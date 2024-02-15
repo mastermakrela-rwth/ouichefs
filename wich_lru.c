@@ -59,22 +59,26 @@ static int is_older(struct inode *inode1, struct inode *inode2)
 static void leaf_action(struct traverse_node *parent,
 			struct traverse_node *child, void *data)
 {
-	struct lru_data *d = (struct lru_data *)data;
+	struct lru_data *to_del = (struct lru_data *)data;
 
-	if (d->child == NULL) {
-		d->parent = parent->inode;
-		d->child = child->inode;
+	pr_info("Leaf: %s\taccess: %lld\tmodification: %lld\tchange: %lld\n",
+		child->file->filename, child->inode->i_atime.tv_sec,
+		child->inode->i_mtime.tv_sec, child->inode->i_ctime.tv_sec);
+
+	if (to_del->child == NULL) {
+		to_del->parent = parent->inode;
+		to_del->child = child->inode;
 		pr_info("New oldest file is: %s in directory: %s\n",
-			child->file->filename, parent->inode->i_sb->s_id);
+			child->file->filename, parent->file->filename);
 		return;
 	}
 
-	if (is_older(child->inode, d->child)) {
-		d->parent = parent->inode;
-		d->child = child->inode;
+	if (!is_older(child->inode, to_del->child)) {
+		to_del->parent = parent->inode;
+		to_del->child = child->inode;
 
 		pr_info("New oldest file is: %s in directory: %s\n",
-			child->file->filename, parent->inode->i_sb->s_id);
+			child->file->filename, parent->file->filename);
 	}
 }
 
@@ -92,35 +96,71 @@ static void leaf_action(struct traverse_node *parent,
 static int clean_partition(struct super_block *sb)
 {
 	struct buffer_head *bh = NULL;
-	struct ouichefs_dir_block *dblock = NULL;
+	struct ouichefs_dir_block *dir_block = NULL;
 
-	struct ouichefs_inode *root_inode = get_root_inode(sb);
+	struct ouichefs_inode *root_wich_inode = get_root_inode(sb);
 
-	if (!root_inode->index_block)
+	if (!root_wich_inode) {
+		pr_info("No root inode\n");
+		return -EIO;
+	}
+
+	if (!root_wich_inode->index_block)
 		return -EIO;
 
 	/* Read the directory index block on disk */
-	bh = sb_bread(sb, root_inode->index_block);
+	bh = sb_bread(sb, root_wich_inode->index_block);
 	if (!bh)
 		return -EIO;
-	dblock = (struct ouichefs_dir_block *)bh->b_data;
+	dir_block = (struct ouichefs_dir_block *)bh->b_data;
 
-	struct lru_data d = { .child = NULL, .parent = NULL };
+	// Prepare for search in file tree
 
-	struct traverse_node root_node = { .file = NULL, .inode = NULL };
+	struct ouichefs_file root_file = {
+		.filename = "/",
+		.inode = 0,
+	};
 
-	traverse_dir(sb, dblock, &root_node, NULL, NULL, leaf_action, &d);
+	struct inode *root_inode = ouichefs_iget(sb, 0);
 
+	struct traverse_node root_node = {
+		.file = &root_file,
+		.inode = root_inode,
+	};
+
+	struct lru_data to_del = { .child = NULL, .parent = root_inode };
+
+	// Search for the biggest file in the file tree
+
+	traverse_dir(sb, dir_block, &root_node, NULL, NULL, leaf_action,
+		     &to_del);
+
+	// Check if anything has been found
+
+	if (to_del.child == NULL) {
+		pr_info("No file to delete\n");
+		goto cleanup;
+	}
+
+	if (to_del.child == root_inode) {
+		pr_info("Can't delete root directory\n");
+		goto cleanup;
+	}
+
+	pr_info("Removing file: %lu in directory: %lu\n", to_del.child->i_ino,
+		to_del.parent->i_ino);
+
+	if (ouichefs_remove_file(to_del.parent, to_del.child)) {
+		pr_err("Failed to remove file\n");
+	}
+
+cleanup:
+	iput(root_inode);
 	brelse(bh);
-
-	pr_info("Removing file: %s in directory: %s\n", d.child->i_sb->s_id,
-		d.parent->i_sb->s_id);
-
-	// TODO: use ouichefs_remove_file
-	// ouichefs_remove(d.parent, d.child);
 
 	return 0;
 }
+
 /**
  * clean_dir - Clean a directory by removing the oldest file
  *
@@ -147,7 +187,7 @@ static int clean_dir(struct super_block *sb, struct inode *parent,
 	for (int i = 0; i < OUICHEFS_MAX_SUBFILES; i++) {
 		f = &(files[i]);
 
-		if (!f)
+		if (!f->inode)
 			break;
 
 		inode = ouichefs_iget(sb, f->inode);
@@ -161,7 +201,7 @@ static int clean_dir(struct super_block *sb, struct inode *parent,
 			goto cont;
 		}
 
-		if (is_older(inode, child)) {
+		if (!is_older(inode, child)) {
 			child = inode;
 			child_f = f;
 		}
@@ -179,8 +219,10 @@ cont:
 	pr_info("Removing file: %s in directory: %s\n", child_f->filename,
 		parent->i_sb->s_id);
 
-	// TODO: use ouichefs_remove_file
-	// ouichefs_remove(parent, child);
+	if (ouichefs_remove_file(parent, child)) {
+		pr_err("Failed to remove file\n");
+		return -1;
+	}
 
 	return 0;
 }
