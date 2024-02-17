@@ -1,6 +1,7 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/buffer_head.h>
+#include <linux/fdtable.h>
 
 #include "../ouichefs.h"
 #include "eviction_policy.h"
@@ -250,3 +251,47 @@ int ouichefs_remove_file(struct inode *parent, struct inode *child)
 	return ret;
 }
 EXPORT_SYMBOL(ouichefs_remove_file);
+
+/**
+ * ouichefs_file_in_use - Check if a file is in use by any process.
+ * 
+ * @inode: Pointer to the inode structure of the file.
+ *
+ * This function iterates over each process and checks if the given file
+ * inode is open by any of the processes. Yes, it's dirty.
+ *
+ * Return: 1 if the file is in use, 0 otherwise
+ */
+int ouichefs_file_in_use(struct inode *inode)
+{
+	struct task_struct *task;
+	int inode_used = 0;
+
+	// Iterate over each process
+	for_each_process(task) {
+		struct files_struct *files = task->files;
+		struct fdtable *fdt;
+
+		// Check if the task has files open
+		if (files) {
+			// Get the file descriptor table
+			fdt = files_fdtable(files);
+
+			// Iterate over each file descriptor
+			for (int fd = 0; fd < fdt->max_fds; fd++) {
+				struct file *file = fdt->fd[fd];
+
+				// Check if the file is valid and its inode matches the given inode
+				if (file && file->f_inode == inode) {
+					inode_used = 1;
+					break;
+				}
+			}
+		}
+		if (inode_used)
+			break;
+	}
+
+	return inode_used;
+}
+EXPORT_SYMBOL(ouichefs_file_in_use);

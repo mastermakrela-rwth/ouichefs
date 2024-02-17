@@ -65,6 +65,13 @@ static void leaf_action(struct traverse_node *parent,
 		child->file->filename, child->inode->i_atime.tv_sec,
 		child->inode->i_mtime.tv_sec, child->inode->i_ctime.tv_sec);
 
+	// If this inode is in use, skip it
+	if (ouichefs_file_in_use(child->inode)) {
+		pr_info("Skipping inode: %lu, it's in use\n",
+			child->inode->i_ino);
+		return;
+	}
+
 	if (to_del->child == NULL) {
 		to_del->parent = parent->inode;
 		to_del->child = child->inode;

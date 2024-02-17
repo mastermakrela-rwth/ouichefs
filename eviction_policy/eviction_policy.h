@@ -61,6 +61,8 @@ void traverse_dir(struct super_block *sb, struct ouichefs_dir_block *dir,
 
 int ouichefs_remove_file(struct inode *parent, struct inode *child);
 
+int ouichefs_file_in_use(struct inode *inode);
+
 /* we user % to be able to use int instead of float */
 #define PERCENT_BLOCKS_FREE 20
 

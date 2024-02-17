@@ -60,10 +60,15 @@ static void leaf_action(struct traverse_node *parent,
 			struct traverse_node *child, void *data)
 {
 	struct print_data *pd = (struct print_data *)data;
-	pr_info("%*s%s\tsize: %lld\taccess: %lld\tmodification: %lld\tchange: %lld\n",
+
+	// Print whether file in use with ouichefs_file_in_use
+	int file_in_use = ouichefs_file_in_use(child->inode);
+
+	pr_info("%*s%s\tsize: %lld\taccess: %lld\tmodification: %lld\tchange: %lld\t%s\n",
 		pd->indent, "", child->file->filename, child->inode->i_size,
 		child->inode->i_atime.tv_sec, child->inode->i_mtime.tv_sec,
-		child->inode->i_ctime.tv_sec);
+		child->inode->i_ctime.tv_sec,
+		file_in_use > 0 ? "IN USE" : "NOT IN USE");
 }
 
 /**
