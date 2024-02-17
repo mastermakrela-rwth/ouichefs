@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0 */
+
 #include <linux/kernel.h>
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
@@ -41,9 +43,8 @@ static ssize_t clean_proc_write(struct file *s, const char __user *buf,
 	struct list_head *head = &first_partition.list;
 
 	list_for_each_entry(partition, head, list) {
-		if (strcmp(partition->name, mount_name) == 0) {
+		if (strcmp(partition->name, mount_name) == 0)
 			break;
-		}
 	}
 
 	if (partition == NULL) {
@@ -54,7 +55,7 @@ static ssize_t clean_proc_write(struct file *s, const char __user *buf,
 	struct super_block *sb = partition->sb;
 
 	if (sb == NULL) {
-		pr_err("Partition without superblock - this should not happen ¯\\_(ツ)_/¯ \n");
+		pr_err("Partition without superblock - this should not happen ¯\\_(ツ)_/¯\n");
 		return -EINVAL;
 	}
 
@@ -68,6 +69,6 @@ static ssize_t clean_proc_write(struct file *s, const char __user *buf,
 	return size;
 }
 
-struct proc_ops clean_proc_ops = {
+const struct proc_ops clean_proc_ops = {
 	.proc_write = clean_proc_write,
 };

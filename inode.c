@@ -98,7 +98,7 @@ EXPORT_SYMBOL(ouichefs_iget);
 
 /**
  * Get the root inode of the filesystem.
-*/
+ */
 struct ouichefs_inode *get_root_inode(struct super_block *sb)
 {
 	struct ouichefs_inode *root_inode = NULL;

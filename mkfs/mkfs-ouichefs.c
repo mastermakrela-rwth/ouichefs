@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -73,6 +75,7 @@ static inline void usage(char *appname)
 static inline uint32_t idiv_ceil(uint32_t a, uint32_t b)
 {
 	uint32_t ret = a / b;
+
 	if (a % b != 0)
 		return ret + 1;
 	return ret;
@@ -151,9 +154,7 @@ static int write_inode_store(int fd, struct ouichefs_superblock *sb)
 	first_data_block = 1 + le32toh(sb->nr_bfree_blocks) +
 			   le32toh(sb->nr_ifree_blocks) +
 			   le32toh(sb->nr_istore_blocks);
-	inode->i_mode =
-		htole32(S_IFDIR | S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR |
-			S_IWGRP | S_IXUSR | S_IXGRP | S_IXOTH);
+	inode->i_mode = htole32(S_IFDIR | 0644 | 0131);
 	inode->i_uid = 0;
 	inode->i_gid = 0;
 	inode->i_size = htole32(OUICHEFS_BLOCK_SIZE);
@@ -293,15 +294,15 @@ static int write_data_blocks(int fd, struct ouichefs_superblock *sb)
 	/* struct ouichefs_file_index_block foo_block; */
 	/* char *foo; */
 	/* uint32_t first_block = le32toh(sb->nr_istore_blocks) + */
-	/* 	le32toh(sb->nr_ifree_blocks) + le32toh(sb->nr_bfree_blocks) + 3; */
+	/*	le32toh(sb->nr_ifree_blocks) + le32toh(sb->nr_bfree_blocks) + 3; */
 
 	/* foo = malloc(OUICHEFS_BLOCK_SIZE); */
 	/* if (!foo) */
-	/* 	return -1; */
+	/*	return -1; */
 	/* memset(foo, 0, OUICHEFS_BLOCK_SIZE); */
 
 	/* end: */
-	/* 	free(foo); */
+	/*	free(foo); */
 
 	return ret;
 }
@@ -309,7 +310,7 @@ static int write_data_blocks(int fd, struct ouichefs_superblock *sb)
 int main(int argc, char **argv)
 {
 	int ret = EXIT_SUCCESS, fd;
-	long int min_size;
+	long min_size;
 	struct stat stat_buf;
 	struct ouichefs_superblock *sb = NULL;
 

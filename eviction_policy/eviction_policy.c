@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/buffer_head.h>
@@ -8,7 +10,6 @@
 
 static int clean_partition_placeholder(struct super_block *sb)
 {
-	pr_info("clean_partition_placeholder called\n");
 	pr_info("got superblock: %s\n", sb->s_id);
 
 	return 0;
@@ -17,7 +18,6 @@ static int clean_partition_placeholder(struct super_block *sb)
 static int clean_dir_placeholder(struct super_block *sb, struct inode *parent,
 				 struct ouichefs_file *files)
 {
-	pr_info("clean_dir_placeholder called\n");
 	pr_info("got superblock: %s\n", sb->s_id);
 
 	return 0;
@@ -96,9 +96,8 @@ void unregister_eviction_policy(struct ouichefs_eviction_policy *policy)
 	}
 
 	/* If current policy is unregistered then fallback to default */
-	if (current_policy == policy) {
+	if (current_policy == policy)
 		current_policy = &default_policy;
-	}
 
 	list_del(&policy->list_head);
 
@@ -254,7 +253,7 @@ EXPORT_SYMBOL(ouichefs_remove_file);
 
 /**
  * ouichefs_file_in_use - Check if a file is in use by any process.
- * 
+ *
  * @inode: Pointer to the inode structure of the file.
  *
  * This function iterates over each process and checks if the given file

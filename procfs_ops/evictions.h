@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0 */
+
 #include <linux/kernel.h>
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
@@ -18,15 +20,14 @@
  */
 static int evictions_show(struct seq_file *m, void *v)
 {
-	seq_printf(m, "Following eviction policies are available:\n");
+	seq_puts(m, "Following eviction policies are available:\n");
 
 	struct ouichefs_eviction_policy *policy;
 
-	if (current_policy == &default_policy) {
-		seq_printf(m, "default (does nothing)\t[ACTIVE]\n");
-	} else {
-		seq_printf(m, "default (does nothing)\n");
-	}
+	if (current_policy == &default_policy)
+		seq_puts(m, "default (does nothing)\t[ACTIVE]\n");
+	else
+		seq_puts(m, "default (does nothing)\n");
 
 	list_for_each_entry(policy, &default_policy.list_head, list_head) {
 		if (policy == current_policy)
@@ -53,7 +54,7 @@ static int evictions_open(struct inode *inode, struct file *file)
  *
  * This function is the write callback for the evictions_proc file. It expects a
  * policy name of the currently active policies (see :c:func:`evictions_show`) as input and sets the
- * eviction policy accordingly. The maximum allowed size for the policy name is defined by 
+ * eviction policy accordingly. The maximum allowed size for the policy name is defined by
  * POLICY_NAME_LEN. If the input policy name exceeds this limit, an error is returned. The function
  * copies the policy name from the user buffer to the input_buffer and then calls the
  * set_eviction_policy() function to set the eviction policy. If the policy name
@@ -84,7 +85,7 @@ static ssize_t evictions_proc_write(struct file *s, const char __user *buf,
 	return size;
 }
 
-struct proc_ops evictions_proc_ops = {
+const struct proc_ops evictions_proc_ops = {
 	.proc_open = evictions_open,
 	.proc_read = seq_read,
 	.proc_lseek = seq_lseek,

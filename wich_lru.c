@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/fs.h>
@@ -157,9 +159,8 @@ static int clean_partition(struct super_block *sb)
 	pr_info("Removing file: %lu in directory: %lu\n", to_del.child->i_ino,
 		to_del.parent->i_ino);
 
-	if (ouichefs_remove_file(to_del.parent, to_del.child)) {
+	if (ouichefs_remove_file(to_del.parent, to_del.child))
 		pr_err("Failed to remove file\n");
-	}
 
 cleanup:
 	iput(root_inode);
@@ -263,7 +264,7 @@ static void __exit my_module_exit(void)
 {
 	unregister_eviction_policy(&wich_lru_policy);
 
-	printk(KERN_INFO "Unregistered LRU eviction policy\n");
+	pr_info("Unregistered LRU eviction policy\n");
 }
 module_exit(my_module_exit);
 

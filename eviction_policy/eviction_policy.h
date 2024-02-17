@@ -16,12 +16,12 @@ struct ouichefs_eviction_policy {
 	char name[POLICY_NAME_LEN];
 
 	/**
-	 * This function should go through the whole partition and free some 
+	 * This function should go through the whole partition and free some
 	 * blocks based on it's policy.
 	 * It gets the super block of the partition to clean, because there can
 	 * be multiple partitions, using this filesystem, mounted.
 	 */
-	int (*clean_partition)(struct super_block *);
+	int (*clean_partition)(struct super_block *sb);
 
 	/**
 	 * This function is called when during file/directory creation there is

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/fs.h>
@@ -12,7 +14,7 @@ struct print_data {
 
 /**
  * node_action_before - Perform an action before traversing a node.
- * 
+ *
  * @parent: The parent traverse node.
  * @data: The data associated with the traversal.
  *
@@ -30,7 +32,7 @@ static void node_action_before(struct traverse_node *parent, void *data)
 
 /**
  * node_action_after - Perform an action after traversing a node.
- * 
+ *
  * @parent: The parent traverse node.
  * @data: The data associated with the traversal.
  *
@@ -40,6 +42,7 @@ static void node_action_before(struct traverse_node *parent, void *data)
 static void node_action_after(struct traverse_node *parent, void *data)
 {
 	struct print_data *pd = (struct print_data *)data;
+
 	pd->indent -= 4;
 }
 
@@ -151,7 +154,7 @@ static struct ouichefs_eviction_policy wich_print_policy = {
 
 static int __init my_module_init(void)
 {
-	printk(KERN_INFO "Hello from my_module!\n");
+	pr_info("Hello from my_module!\n");
 
 	if (register_eviction_policy(&wich_print_policy)) {
 		pr_err("register_eviction_policy failed\n");
@@ -166,7 +169,7 @@ static void __exit my_module_exit(void)
 {
 	unregister_eviction_policy(&wich_print_policy);
 
-	printk(KERN_INFO "Goodbye from my_module!\n");
+	pr_info("Goodbye from my_module!\n");
 }
 module_exit(my_module_exit);
 
