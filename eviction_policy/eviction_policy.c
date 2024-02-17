@@ -180,7 +180,7 @@ void traverse_dir(struct super_block *sb, struct ouichefs_dir_block *dir,
 		if (!f->inode)
 			break;
 
-		// for some fucking reason no variation of ilookup / find_inode_* works, so after 3h of debugging we give up and just grab the inode from the disk, instead of cache
+		// for some reason no variation of ilookup / find_inode_* works, so after 3h of debugging we give up and just grab the inode from the disk, instead of cache
 		// inode = ilookup(sb, f->inode);
 		inode = ouichefs_iget(sb, f->inode);
 
@@ -226,6 +226,19 @@ void traverse_dir(struct super_block *sb, struct ouichefs_dir_block *dir,
 }
 EXPORT_SYMBOL(traverse_dir);
 
+/**
+ * ouichefs_remove_file - Remove a file from the ouichefs filesystem.
+ * 
+ * @parent: The parent inode of the file
+ * @child: The child inode representing the file to be removed
+ *
+ * This function is responsible for removing a file from the ouichefs filesystem.
+ * It first tries to find the dentry associated with the child inode. If found, it
+ * unlinks the file using the parent inode and the dentry. If the dentry is not found,
+ * it falls back to removing the file using the parent and child inodes directly.
+ *
+ * Return: 0 on success, negative error code on failure
+ */
 int ouichefs_remove_file(struct inode *parent, struct inode *child)
 {
 	int ret = 0;
