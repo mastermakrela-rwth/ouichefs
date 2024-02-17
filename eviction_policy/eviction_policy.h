@@ -63,7 +63,12 @@ int ouichefs_remove_file(struct inode *parent, struct inode *child);
 
 int ouichefs_file_in_use(struct inode *inode);
 
-/* we user % to be able to use int instead of float */
-#define PERCENT_BLOCKS_FREE 20
+/**
+ * This variable is used in the eviction policy module to determine when to trigger eviction.
+ * This is a percentage of the total blocks in the partition.
+ * When the number of free blocks in the partition falls below this percentage,
+ * the eviction policy will be triggered for the partition.
+ */
+extern int trigger_threshold;
 
 #endif /* _EVICTION_POLICY_H */

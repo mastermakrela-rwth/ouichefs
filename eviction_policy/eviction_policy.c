@@ -8,6 +8,14 @@
 #include "../ouichefs.h"
 #include "eviction_policy.h"
 
+// MARK: - Module parameters
+
+int trigger_threshold = 80;
+module_param(trigger_threshold, int, 0644);
+MODULE_PARM_DESC(trigger_threshold, "Trigger threshold for eviction policy");
+
+// MARK: - Default eviction policy
+
 static int clean_partition_placeholder(struct super_block *sb)
 {
 	pr_info("got superblock: %s\n", sb->s_id);
@@ -31,6 +39,8 @@ struct ouichefs_eviction_policy default_policy = {
 };
 
 struct ouichefs_eviction_policy *current_policy = &default_policy;
+
+// MARK: - Eviction policy functions
 
 /**
  * register_eviction_policy - Register an eviction policy
@@ -139,6 +149,8 @@ int set_eviction_policy(const char *name)
 	return -EINVAL;
 }
 
+// MARK: - Helper functions
+
 /**
  * traverse_dir - Recursively traverses a directory and performs actions on each directory node and
  * file leaf.
@@ -228,7 +240,7 @@ EXPORT_SYMBOL(traverse_dir);
 
 /**
  * ouichefs_remove_file - Remove a file from the ouichefs filesystem.
- * 
+ *
  * @parent: The parent inode of the file
  * @child: The child inode representing the file to be removed
  *

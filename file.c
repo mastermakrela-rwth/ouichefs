@@ -190,7 +190,7 @@ end:
 
 	// after analyzing the whole fs, I think this is the best place to place this check
 	// i.e. to call the policy if some percentage of blocks are full
-	if (percent_free < PERCENT_BLOCKS_FREE) {
+	if (percent_free < trigger_threshold) {
 		pr_info("cleaning partition\n");
 		current_policy->clean_partition(sb);
 	}

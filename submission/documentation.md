@@ -13,4 +13,5 @@ The project must be done in **groups of two students**. You should already have 
 The deadline is **Monday 26 February at 23h59**.
 
 ## Grading
+
 You will be evaluated with functional tests (does your code work?), as well as on the quality and readability of your code (don’t forget to use the scripts/checkpatch.pl script from the kernel sources, respect the kernel coding style rules, and comment your code). Similarly for the report, please make it easy to understand and run a spell checker. The report itself will not be graded, but if it is hard to understand, it will make it harder for us to give you more points.
