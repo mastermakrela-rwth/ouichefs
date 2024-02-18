@@ -10,7 +10,7 @@
 
 // MARK: - Module parameters
 
-int trigger_threshold = 80;
+int trigger_threshold = 20;
 module_param(trigger_threshold, int, 0644);
 MODULE_PARM_DESC(trigger_threshold, "Trigger threshold for eviction policy");
 
