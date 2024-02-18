@@ -6,8 +6,6 @@ Authors:
 + Krzysztof Kostrzewa, 380029
 + Rico Stanosek, 433500
 
-col= List of features implemented and functional
-
 == Helper functions for eviction policies
 
 In `eviction_policy/eviction_policy.h/.c` you will find helper functions that
@@ -18,9 +16,7 @@ are used in the implementations of the eviction policies. These functions are:
 + `register_eviction_policy` and `unregister_eviction_policy` to register and
   unregister eviction policies.
 + `set_eviction_policy` to set which eviction policy is to be used.
-+ `traverse_dir` is used to recursively traverse directory. It is written very
-  flexible so we can use it in different eviction policies by adjusting the data
-  that is passed to it.
++ `traverse_dir` is used to recursively traverse directory. It is very flexible, which allows us to use it in different eviction policies by adjusting the functionality that is passed to it.
 + `ouichefs_remove_file` is our implementation of deleting a file based on whether
   we have the `dentry` available or not.
 + `ouichefs_file_in_use` is used to check whether a file is used. We know that
@@ -28,7 +24,8 @@ are used in the implementations of the eviction policies. These functions are:
   checking their inode against our inode is highly inefficient. However, our
   attempts to use the `i_count` field of `struct inode` failed as there were many
   side effects increasing and also not increasing the `i_count` field in a way we
-  needed it to.
+  needed it to. We really spent a lot of time on this issue and did not find a better way to solve this issue.
+
 
 == Eviction policies
 
@@ -122,13 +119,15 @@ make
 make install
 ```
 
-To use the eviction policies, you need to traverse to the shared directory and
-insert the `ouichefs` module and have a image mounted.
+To use the eviction policies mechanism, you need to insert the `ouichefs` module and your preferred policy module(s) (You can configure which inserted module is active, see @change-policies).
+Of course, you also have to have a parition using ouichefs mounted.
 
 ```bash
-insmod ouichefs.ko
+insmod ouichefs.ko trigger_threshold=50
 ./scripts/mount.sh test.img
 ```
+
+You can set the trigger threshold to a value of your choice. The default is 80% meaning that if 20% of the partition is used, the eviction process is triggered.
 
 Afterwards you can insert the eviction policies of your choice.
 
@@ -137,7 +136,7 @@ insmod wich_size.ko
 insmod wich_lru.ko
 ```
 
-== Changing eviction policies
+== Changing eviction policies <change-policies>
 
 You can retrieve the available eviction policies by using the following command:
 
@@ -180,7 +179,7 @@ Following partitions use ouiche_fs:
 You can then manually trigger the eviction process with:
 
 ```bash
-echo -n "/dev/loop1" > /proc/ouiche/evict
+echo -n "0:/dev/loop1" > /proc/ouiche/clean
 ```
 
 == Removing the modules
