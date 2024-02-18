@@ -109,6 +109,7 @@ static int __init ouichefs_init(void)
 	}
 
 	pr_info("module loaded\n");
+	pr_info("trigger_threshold: %d\n", trigger_threshold);
 	return 0;
 
 err_procfs:
