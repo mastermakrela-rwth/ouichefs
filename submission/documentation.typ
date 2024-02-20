@@ -107,12 +107,12 @@ The two scenarios in which the eviction process is triggered are:
 + When a directory is full and we need to free up space as another file is to be
   created. You can see our implementation in `ouichefs_create` in `inode.c`.
 + When the partition exceeds a given threshold, which can be configured when
-  inserting the `ouichefs` module (see @insert-ouichefs). The triggering of the
+  inserting the `ouichefs` module (see @base-setup). The triggering of the
   eviction process is implemented in `ouichefs_write_end` in `file.c`.
 
-== Base setup
+== Base setup <base-setup>
 
-To compile our project you should be able to use the `Makefile`in the root
+To compile our project you should be able to use the `Makefile` in the root
 directory. `make install` will additionally move the `ko` files and our
 `scripts` directory to the specified path in the virtual machine.
 
@@ -126,11 +126,10 @@ and your preferred policy module(s) (You can configure which inserted module is
 active, see @change-policies). Of course, you also have to have a partition
 using ouichefs mounted.
 
-#figure(```bash
+```bash
 insmod ouichefs.ko trigger_threshold=50
 ./scripts/mount.sh test.img
-```)
-<insert-ouichefs>
+```
 
 You can set the trigger threshold to a value of your choice. The default is 20
 %, meaning that if 80 % of the partitions blocks are used, the eviction process
