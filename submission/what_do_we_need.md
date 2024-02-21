@@ -4,7 +4,7 @@
 - [x] (Optional) Implement a least-recently accessed eviction policy deleting the file with the oldest access time.
 - [x] (Optional) Implement a least-recently changed eviction policy deleting the file with the oldest change time.
 
-- [x] Implement the ability to dynamically insert eviction policies. 
+- [x] Implement the ability to dynamically insert eviction policies.
 - [x] Implement the ability to dynamically change the eviction policy.
 
 - [x] Implement manual triggering of the eviction process.
@@ -23,7 +23,7 @@ make
 
 ## Basic setup
 
-After copying your *.ko files to the target machine, you can load the base module and the image with:
+After copying your \*.ko files to the target machine, you can load the base module and the image with:
 
 ```bash
 insmod ouichefs.ko
@@ -52,12 +52,12 @@ Following eviction policies are available:
 default (does nothing)
 wich_size
 wich_lru        [ACTIVE]
-``` 
+```
 
 By default the last inserted policy is active. You can change the active policy with:
 
 ```bash
-echo -n "wich_size" > /proc/ouiche/eviction 
+echo -n "wich_size" > /proc/ouiche/eviction
 ```
 
 ```bash
@@ -81,7 +81,7 @@ Following partitions use ouiche_fs:
 You can manually trigger the eviction process with:
 
 ```bash
-echo -n "0:/dev/loop1" > /proc/ouiche/clean 
+echo -n "0:/dev/loop1" > /proc/ouiche/clean
 ```
 
 ## Removing the module

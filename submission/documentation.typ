@@ -1,4 +1,9 @@
+#import "@preview/showybox:2.0.1": showybox
+
 #set heading(numbering: "1.")
+#show link: underline
+
+#let diff_link = "https://github.com/mastermakrela-rwth/ouichefs/compare/f141d527b2bee13acc2f2f542fcd2782ed980598...v6.5.7"
 
 = Documentation of the Linux Kernel Programming Project
 
@@ -6,28 +11,42 @@ Authors:
 + Krzysztof Kostrzewa, 380029
 + Rico Stanosek, 433500
 
+In this document we first describe how we solved the project requirements and
+later (@other-changes) explain other changes we made to the project (compared
+(`diff`ed) to the starting point: #link(diff_link)[`f141d52`]).
+
 == Helper functions for eviction policies
 
-In `eviction_policy/eviction_policy.h/.c` you will find helper functions that
+In `eviction_policy/eviction_policy.(h|c)` you will find helper functions that
 are used in the implementations of the eviction policies. These functions are:
 
 + A default eviction policy that serves as a fallback, if no other eviction policy
   is specified. It does nothing.
 + `register_eviction_policy` and `unregister_eviction_policy` to register and
   unregister eviction policies.
+  - it uses a linked list (`list_head`) to keep track of the registered eviction
+    policies. That's also partially the reason why we need a default policy, to make
+    the list handling easier (less null checks).
 + `set_eviction_policy` to set which eviction policy is to be used.
 + `traverse_dir` is used to recursively traverse directory. It is very flexible,
   which allows us to use it in different eviction policies by adjusting the
   functionality that is passed to it.
+  - because the filesystem is a tree, we have used standard recursive approach to
+    check all files. We know recursion isn't great in the kernel and this could
+    probably be done without it, but ease of reasoning and readability were more
+    important in those circumstances (Uni project).
 + `ouichefs_remove_file` is our implementation of deleting a file based on whether
   we have the `dentry` available or not.
-+ `ouichefs_file_in_use` is used to check whether a file is used. We know that
-  this approach by iterating over every process, grabbing their open files and
-  checking their inode against our inode is highly inefficient. However, our
-  attempts to use the `i_count` field of `struct inode` failed as there were many
-  side effects increasing and also not increasing the `i_count` field in a way we
-  needed it to. We really spent a lot of time on this issue and did not find a
-  better way to solve this issue.
+  - we are traversing the "disk" so some files might not have been loaded into
+    dentry cache, because the user haven't accessed them yet, in that case they have
+    only `indo` and `dentry` doesn't exist.
++ `ouichefs_file_in_use` is used to check whether a file is used.
+  - We know that this approach by iterating over every process, grabbing their open
+    files and checking their inode against our inode is highly inefficient. However,
+    our attempts to use the `i_count` field of `struct inode` failed as there were
+    many side effects increasing and also not increasing the `i_count` field in a
+    way we needed it to. We really spent a lot of time on this issue and did not
+    find a better way to solve this issue.
 
 == Eviction policies
 
@@ -46,7 +65,7 @@ ease of just modifying the `is_older` function to depend on either `i_atime`,
 `i_mtime` or `i_ctime` makes it very flexible and enabled us to implement three
 eviction strategies with minimal effort.
 
-The default eviction policy is LRU (based on `i_ctime`). You can dynamically
+The default for LRU eviction policy is to use `i_ctime`. You can dynamically
 change the policy when inserting the module.
 
 ```bash
@@ -209,7 +228,7 @@ implementation is functional.
 
 We have found two possible bug and fixed one of them.
 
-== Bug 1: Minimal size of the image
+== Bug 1: Minimal size of the image <bug-1>
 
 In `mkfs/mkfs-ouichefs.c` the check for the minimal size used $≤$ instead of
 $<$.
@@ -223,3 +242,56 @@ $<$.
 
 We have found that `.` and `..` are missing in the output of `ls`. But we have
 not found a solution for this issue.
+
+#line(length: 100%)
+
+= Other changes to the project <other-changes>
+
+You can see the whole `diff` #link(diff_link)[here]. (We've invited you to the
+private repo, but if you can't access it, #link("mailto:krzysztof.kostrzewa@rwth-aachen.de")[drop us a line])
+
+=== `.vscode`
+
+The configuration needed for the InteliSense and spellchecker in VS Code.
+
+=== `Makefile`
+
+We had to modify the `Makefile` to compile our `eviction_policy.(c|h)`, we have
+also added convinience option `install` to move the `ko` files to the vm.
+
+But the biggest change was adding `LLVM` flag, which allowed building the
+project with `clang` under macOS. It acts the same as the option form Linux
+kernels Makefile.
+
+=== `mkfs/Makefile`
+
+Here we've two more sizes of the image to make testing easier (filling one mb is
+easier than 50). Here the `smaol_img` ist the smallest image possible with this
+mkfs as mentioned in @bug-1.
+
+=== `mac_kernel_patch_6-5-7.patch`
+
+Patch of the kernel to make it buildable with #link("https://formulae.brew.sh/formula/llvm#default")[`clang`] on
+macOS.
+
+Steps:
+
+1. add llvm to path:
+  `PATH="/opt/homebrew/Cellar/llvm/<current-version>/bin/:$PATH"`
+2. make config: `make LLVM=1 ARCH=arm64 menuconfig`
+3. build the kernel `make LLVM=1 ARCH=arm64 -j 8 HOSTCFLAGS="-I./"`
+  - we need `HOSTCFLAGS="-I./"` to tell the compiler where to look for `*.h` files
+    added by the patch
+
+#showybox(
+  frame: (
+    border-color: red.darken(50%),
+    title-color: red.lighten(60%),
+    body-color: red.lighten(80%),
+  ),
+  title-style: (color: black, weight: "regular", align: center),
+  title: "Discalimer!",
+  [We mention the patch here, because (1) it's interesting and (2) it's what
+    Krzysztof used to develop. *BUT* we have tested the project on Arch Linux/arm64
+    and elementaryOS/x86_64 and both worked.],
+)
