@@ -25,8 +25,8 @@ are used in the implementations of the eviction policies. These functions are:
 + `register_eviction_policy` and `unregister_eviction_policy` to register and
   unregister eviction policies.
   - it uses a linked list (`list_head`) to keep track of the registered eviction
-    policies. That's also partially the reason why we need a default policy, to make
-    the list handling easier (less null checks).
+    policies. That's also partially the reason, why we need a default policy, to
+    make the list handling easier (less null checks).
 + `set_eviction_policy` to set which eviction policy is to be used.
 + `traverse_dir` is used to recursively traverse directory. It is very flexible,
   which allows us to use it in different eviction policies by adjusting the
@@ -38,8 +38,8 @@ are used in the implementations of the eviction policies. These functions are:
 + `ouichefs_remove_file` is our implementation of deleting a file based on whether
   we have the `dentry` available or not.
   - we are traversing the "disk" so some files might not have been loaded into
-    dentry cache, because the user haven't accessed them yet, in that case they have
-    only `indo` and `dentry` doesn't exist.
+    dentry cache, because the user hasn't accessed them yet, in that case they have
+    only `inode` and `dentry` doesn't exist.
 + `ouichefs_file_in_use` is used to check whether a file is used.
   - We know that this approach by iterating over every process, grabbing their open
     files and checking their inode against our inode is highly inefficient. However,
@@ -51,8 +51,8 @@ are used in the implementations of the eviction policies. These functions are:
 == Eviction policies
 
 In both eviction policies you will find the following functions:
-+ `clean_dir` gets called when a directory is full and we need to free up space as
-  another file is to be created.
++ `clean_dir` gets called when a directory is full, and we need to free up space
+  as another file is to be created.
 + `clean_partition` gets called when the partition exceeds a given threshold.
 + `leaf_action` performs some action on a file (leaf). Depending on the eviction
   policy it compares whether the file is to be deleted or not.
@@ -113,7 +113,7 @@ we search for the biggest file instead of the oldest before deleting.
 
 == Printing policy
 
-You will also find a eviction policy `wich_print.c` that will not evict
+You will also find an eviction policy `wich_print.c` that will not evict
 anything. This eviction policy is used to print file and inode information that
 were very handy during the development of the eviction policies in a tree like
 fashion.
@@ -123,7 +123,7 @@ It gets triggered like every other policy.
 == Automatic eviction
 
 The two scenarios in which the eviction process is triggered are:
-+ When a directory is full and we need to free up space as another file is to be
++ When a directory is full, and we need to free up space as another file is to be
   created. You can see our implementation in `ouichefs_create` in `inode.c`.
 + When the partition exceeds a given threshold, which can be configured when
   inserting the `ouichefs` module (see @base-setup). The triggering of the
@@ -176,7 +176,7 @@ wich_size
 wich_lru        [ACTIVE]
 ```
 
-By default the last inserted policy is active. You can change the active policy
+By default, the last inserted policy is active. You can change the active policy
 with:
 
 ```bash
@@ -198,7 +198,7 @@ cat /proc/ouiche/partitions
 ```
 
 The will output the mountpoints and their indices (in previous version we wanted
-to use the name not the index but x86_64 linux didn't want to cooperate)
+to use the name not the index but x86_64 Linux didn't want to cooperate)
 
 ```bash
 Following partitions use ouiche_fs:
@@ -232,7 +232,7 @@ implementation is functional.
 
 = List of bugs
 
-We have found two possible bug and fixed one of them.
+We have found two possible bugs and fixed one of them.
 
 == Bug 1: Minimal size of the image <bug-1>
 
@@ -258,12 +258,12 @@ private repo, but if you can't access it, #link("mailto:krzysztof.kostrzewa@rwth
 
 === `.vscode`
 
-The configuration needed for the InteliSense and spellchecker in VS Code.
+The configuration needed for the IntelliSense and spellchecker in VS Code.
 
 === `Makefile`
 
 We had to modify the `Makefile` to compile our `eviction_policy.(c|h)`, we have
-also added convinience option `install` to move the `ko` files to the vm.
+also added convenience option `install` to move the `ko` files to the vm.
 
 But the biggest change was adding `LLVM` flag, which allowed building the
 project with `clang` under macOS. It acts the same as the option form Linux
@@ -271,8 +271,8 @@ kernels Makefile.
 
 === `mkfs/Makefile`
 
-Here we've two more sizes of the image to make testing easier (filling one mb is
-easier than 50). Here the `smaol_img` ist the smallest image possible with this
+Here we've two more sizes of the image to make testing easier (filling one MB is
+easier than 50). Here the `smol_img` is the smallest image possible with this
 mkfs as mentioned in @bug-1.
 
 === `mac_kernel_patch_6-5-7.patch`

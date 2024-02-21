@@ -1,1 +1,4 @@
 ouichefs
+inode
+wich
+dir
