@@ -69,19 +69,23 @@ void forget_partition(struct super_block *sb)
  * @v: Unused argument.
  *
  * This function is used to display the partitions that use the ouiche_fs filesystem.
- * It iterates through the list of partitions and prints their names using the seq_printf function.
+ * It iterates through the list of partitions and prints their names and indices
+ * using the seq_printf function.
  *
  * Return: Always returns 0.
  */
 static int partitions_show(struct seq_file *m, void *v)
 {
 	seq_puts(m, "Following partitions use ouiche_fs:\n");
+	seq_puts(m, "INDEX\tNAME\n");
 
 	struct partition *item;
 	struct list_head *head = &first_partition.list;
+	int i = 0;
 
 	list_for_each_entry(item, head, list) {
-		seq_printf(m, "%s\n", item->name);
+		seq_printf(m, "%d\t%s\n", i, item->name);
+		i++;
 	}
 
 	return 0;

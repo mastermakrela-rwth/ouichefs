@@ -13,38 +13,48 @@
  * @ppos: Pointer to the file position.
  *
  * This function is the write callback for cleaning a specific mount. It takes
- * the mount name from the input buffer and searches for the corresponding
+ * the mount index from the input buffer and searches for the corresponding
  * partition. If found, it checks if the partition has a superblock and if the
- * superblock's magic number matches the expected value. If all conditions are
- * met, it calls the clean_partition() function of the current policy to clean
- * the partition.
+ * superblock's magic number matches the expected value (ouichefs magic number).
+ * If all conditions are met, it calls the clean_partition() function of the
+ * current policy to clean the partition.
  *
  * Return: The size of the input buffer on success, or a negative error code on failure.
  */
 static ssize_t clean_proc_write(struct file *s, const char __user *buf,
 				size_t size, loff_t *ppos)
 {
-	char mount_name[128];
+	int index;
 
-	// get the superblock id from the input
-	if (copy_from_user(mount_name, buf, size))
-		return -EFAULT;
-
-	// if name is empty print usage
-	if (mount_name[0] == '\0') {
-		//TODO: figure out why it doesn't work
-		pr_info("Usage: provide name of the mount to clean");
+	if (kstrtoint_from_user(buf, size, 10, &index) != 0) {
+		pr_err("Invalid index\n");
 		return -EINVAL;
 	}
 
-	// pr_info("Received mount name: %s\n", mount_name);
+	if (index < 0) {
+		pr_err("Invalid index - must be a positive integer\n");
+		return -EINVAL;
+	}
 
 	struct partition *partition;
 	struct list_head *head = &first_partition.list;
+	int i = 0;
 
 	list_for_each_entry(partition, head, list) {
-		if (strcmp(partition->name, mount_name) == 0)
+		if (i == index)
 			break;
+		i++;
+	}
+
+	if (i != index) {
+		pr_err("No partition found at index %d - out of range\n",
+		       index);
+		return -EINVAL;
+	}
+
+	if (partition == NULL) {
+		pr_err("No partition found at index %d\n", index);
+		return -EINVAL;
 	}
 
 	if (partition == NULL) {

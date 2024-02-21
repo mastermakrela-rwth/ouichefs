@@ -197,15 +197,21 @@ retrieve the available partitions of ouichefs with:
 cat /proc/ouiche/partitions
 ```
 
+The will output the mountpoints and their indices (in previous version we wanted
+to use the name not the index but x86_64 linux didn't want to cooperate)
+
 ```bash
 Following partitions use ouiche_fs:
-0:/dev/loop1
+INDEX   NAME
+0       0:/dev/loop1
 ```
 You can then manually trigger the eviction process with:
 
 ```bash
-echo -n "0:/dev/loop1" > /proc/ouiche/clean
+echo -n 0 > /proc/ouiche/clean
 ```
+
+where `0` is the index of the partition you want to clean.
 
 == Removing the modules
 
