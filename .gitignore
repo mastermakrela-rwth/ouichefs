@@ -54,6 +54,5 @@ dkms.conf
 
 # Other
 mkfs/*.img
-*.patch
 
 .DS_Store
