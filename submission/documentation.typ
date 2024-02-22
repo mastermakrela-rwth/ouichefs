@@ -41,12 +41,13 @@ are used in the implementations of the eviction policies. These functions are:
     dentry cache, because the user hasn't accessed them yet, in that case they have
     only `inode` and `dentry` doesn't exist.
 + `ouichefs_file_in_use` is used to check whether a file is used.
-  - We know that this approach by iterating over every process, grabbing their open
-    files and checking their inode against our inode is highly inefficient. However,
-    our attempts to use the `i_count` field of `struct inode` failed as there were
-    many side effects increasing and also not increasing the `i_count` field in a
-    way we needed it to. We really spent a lot of time on this issue and did not
-    find a better way to solve this issue.
+  - Originally, we iterated over every process, grabbed their open files and checked
+    their inode against our inode. This is highly inefficient, but we didn't find a
+    better way to solve this issue until we joined the last Q&A session and learned
+    about the `i_readcount` and `i_writecount` fields of `struct inode`. We now
+    check, whether one of these fields are non-zero, which yields the result we
+    want. You can still check out our old "implementation" under
+    `ouichefs_file_in_use_legacy`.
 
 == Eviction policies
 

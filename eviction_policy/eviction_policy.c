@@ -277,7 +277,34 @@ int ouichefs_remove_file(struct inode *parent, struct inode *child)
 EXPORT_SYMBOL(ouichefs_remove_file);
 
 /**
- * ouichefs_file_in_use - Check if a file is in use by any process.
+ * ouichefs_file_in_use - Checks if the file is in use.
+ *
+ * @inode: Pointer to the inode structure of the file.
+ *
+ * This function checks if the file is in use by any process. It checks the read
+ * and write counts of the inode and returns 1 if either of them is non-zero.
+ *
+ * Return: 1 if the file is in use, 0 otherwise
+ */
+int ouichefs_file_in_use(struct inode *inode)
+{
+	// print i_readcount and i_writecount
+	pr_info("i_readcount: %d, i_writecount: %d\n",
+		inode->i_readcount.counter, inode->i_writecount.counter);
+
+	if (atomic_read(&inode->i_writecount) ||
+	    atomic_read(&inode->i_readcount)) {
+		return 1;
+	}
+
+	return 0;
+}
+EXPORT_SYMBOL(ouichefs_file_in_use);
+
+/**
+ * ouichefs_file_in_use_legacy - Used to check if a file is in use by any process.
+ * This method is nested four levels deep, please do not show this to anyone.
+ * It's a dirty hack and we know it.
  *
  * @inode: Pointer to the inode structure of the file.
  *
@@ -286,7 +313,7 @@ EXPORT_SYMBOL(ouichefs_remove_file);
  *
  * Return: 1 if the file is in use, 0 otherwise
  */
-int ouichefs_file_in_use(struct inode *inode)
+int ouichefs_file_in_use_legacy(struct inode *inode)
 {
 	struct task_struct *task;
 	int inode_used = 0;
@@ -318,4 +345,3 @@ int ouichefs_file_in_use(struct inode *inode)
 
 	return inode_used;
 }
-EXPORT_SYMBOL(ouichefs_file_in_use);

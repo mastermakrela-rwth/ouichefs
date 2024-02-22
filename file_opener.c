@@ -8,7 +8,7 @@
 int main(void)
 {
 	// Open a file
-	int fd = open("/mnt/smol.img/bee.txt", O_RDONLY);
+	int fd = open("/mnt/smol.img/bee.txt", O_RDWR);
 
 	if (fd == -1) {
 		perror("Failed to open file");
