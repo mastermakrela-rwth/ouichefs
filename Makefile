@@ -52,7 +52,7 @@ debug:
 
 install:
 	cp *.ko $(VM_SHARED_DIR)
-	cp ./scripts $(VM_SHARED_DIR) -r
+	cp -r ./scripts $(VM_SHARED_DIR) 
 
 clean:
 	make -C $(KERNELDIR) M=$(PWD) clean
